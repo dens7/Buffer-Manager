@@ -13,6 +13,7 @@
 #include "exceptions/page_pinned_exception.h"
 #include "exceptions/bad_buffer_exception.h"
 #include "exceptions/hash_not_found_exception.h"
+ #include <stdint.h>
 
 namespace badgerdb { 
 
