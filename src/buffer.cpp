@@ -35,7 +35,6 @@ BufMgr::BufMgr(std::uint32_t bufs)
 
   int htsize = ((((int) (bufs * 1.2))*2)/2)+1;
   hashTable = new BufHashTbl (htsize);  // allocate the buffer hash table
-
   clockHand = bufs - 1;
 }
 
@@ -45,10 +44,39 @@ BufMgr::~BufMgr() {
 
 void BufMgr::advanceClock()
 {
+	clockHand++;
+	clockHand %= numBufs;
 }
 
 void BufMgr::allocBuf(FrameId & frame) 
 {
+	found = false;
+	std::uint32_t i = 0
+	for(i = 0; i < numBufs; i++) 
+	{
+		advanceClock();
+		if (!bufDescTable[clockHand].valid) 
+			found = true;
+			break;
+		else if (bufDescTable[clockHand].refbit) 
+			bufDescTable[clockHand].refbit = false;
+		else if (bufDetuscTable[clockHand].pinCnt != 0);
+		else 
+		{
+			found = true;
+			hashTable->remove(bufDescTable[clockHand].file, bufDescTable[clockHand].pageNo);
+			if (bufDescTable[clockHand].dirtybit)
+			{
+				bufDescTable[clockHand].dirtybit = false;
+				bufDescTable[clockHand].file->writePage(bufPool[clockHand]); 
+			}
+		}
+	}
+	
+	if (!found && i == numBufs) throw BufferExceededException();
+	bufDescTable[clockHand].Clear();
+	frame = clockHand;
+	
 }
 
 	
