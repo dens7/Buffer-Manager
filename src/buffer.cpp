@@ -73,15 +73,31 @@ void BufMgr::allocBuf(FrameId & frame)
 		}
 	}
 	
-	if (!found && i == numBufs) throw BufferExceededException();
+	if (!found && i >= numBufs) throw BufferExceededException();
 	bufDescTable[clockHand].Clear();
-	frame = clockHand;
-	
+	frame = clockHand;	
 }
 
 	
 void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 {
+	FrameId frameNum;
+	try
+	{
+		hashTable->lookup(file, pageNo, frameNum);
+		bufDescTable[frameNum].refbit = true;
+		bufDescTable[frameNum].pinCnt += 1;
+	}
+	catch(HashNotFoundException e)
+	{
+		allocBuf(frameNum); 
+		bufPool[frameNum] = file->readPage(pageNo);
+		hashTable->insert(file, pageNo, frameNum);
+		bufDescTable[frameNum].Set(file, pageNo);
+	}
+	
+	page = &bufPool[frameNum];
+
 }
 
 
@@ -91,6 +107,7 @@ void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty)
 
 void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) 
 {
+	file->allocPage
 }
 
 void BufMgr::flushFile(const File* file) 
@@ -103,7 +120,7 @@ void BufMgr::disposePage(File* file, const PageId PageNo)
 
 void BufMgr::printSelf(void) 
 {
-  BufDesc* tmpbuf;
+  	BufDesc* tmpbuf;
 	int validFrames = 0;
   
   for (std::uint32_t i = 0; i < numBufs; i++)
