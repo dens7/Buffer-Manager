@@ -107,7 +107,13 @@ void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty)
 
 void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) 
 {
-	file->allocPage
+	FrameId frameNum;
+	allocBuf(frameNum);
+	bufPool[frameNum] = file->allocatePage();
+	pageNo = bufPool[frameNum].page_number();
+	hashTable->insert(file, pageNo, frameNum);
+	bufDescTable[frameNum].Set(file, pageNo);
+	page = &bufPool[frameNum];
 }
 
 void BufMgr::flushFile(const File* file) 
