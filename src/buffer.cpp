@@ -122,6 +122,22 @@ void BufMgr::flushFile(const File* file)
 
 void BufMgr::disposePage(File* file, const PageId PageNo)
 {
+	//Check for page in the buffer pool
+	FrameId frameNum;
+	try {
+		hashTable->lookup(file, PageNo, frameNum);
+		//if page is found delete it & write if necessary
+		if (bufDescTable[frameNum].dirty) {
+			bufDescTable[frameNum].dirty = false;
+			file->writePage(bufPool[frameNum]);
+		}
+		//clear the frame
+		bufDescTable[frameNum].Clear();
+		hashTable->remove(file, PageNo);
+		file->deletePage(PageNo);
+	} catch (HashNotFoundException e) {
+	file->deletePage(PageNo);
+	}
 }
 
 void BufMgr::printSelf(void) 
