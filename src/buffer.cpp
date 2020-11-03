@@ -1,4 +1,10 @@
 /**
+ * Members: Michael He
+ * File description: This class is implements a buffer pool which consists of 
+ * frames and uses the clock replacement algorithm to figure out which frame to use next.
+ */
+
+/**
  * @author See Contributors.txt for code contributors and overview of BadgerDB.
  *
  * @section LICENSE
@@ -64,7 +70,7 @@ void BufMgr::allocBuf(FrameId & frame)
 {
 	bool found = false;
 	std::uint32_t i;
-	for(i = 0; i < numBufs; i++) 
+	for(i = 0; i <= numBufs; i++) 
 	{
 		advanceClock();
 		if (!bufDescTable[clockHand].valid) 
@@ -83,6 +89,7 @@ void BufMgr::allocBuf(FrameId & frame)
 				bufDescTable[clockHand].dirty = false;
 				bufDescTable[clockHand].file->writePage(bufPool[clockHand]); 
 			}
+			break;
 		}
 	}
 	
@@ -145,6 +152,12 @@ void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty)
 	}
 }
 
+/*
+* Allocates a free frame using the clock algorithm; if necessary, writing a dirty page back
+* to disk. Throws BufferExceededException if all buffer frames are pinned. This private
+* method will get called by the readPage() and allocPage() methods. If the buffer frame allocated has a valid page in it, 
+* you the appropriate entry is removed from the hash table.
+*/
 void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) 
 {
 	FrameId frameNum;
